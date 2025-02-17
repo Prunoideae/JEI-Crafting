@@ -18,8 +18,6 @@ import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.List;
-
 @EventBusSubscriber(Dist.CLIENT)
 public class ClientEvents {
 
@@ -31,7 +29,7 @@ public class ClientEvents {
         var selected = JEICraftingPlugin.getSelectedItem();
         if (selected == null) return;
 
-        if (GameState.getMatchingRecipes(selected).isEmpty() && !selected.is(GameState.FREE_ITEM)) return;
+        if (GameState.getMatchingRecipes(selected).isEmpty()) return;
         PacketDistributor.sendToServer(new CraftItemPayload(selected, 0, GameConfig.getCurrentMultiplier(), Screen.hasControlDown()));
     }
 
@@ -40,21 +38,11 @@ public class ClientEvents {
         var selected = JEICraftingPlugin.getSelectedItem();
         if (selected == null || !ItemStack.isSameItemSameComponents(selected, event.getItemStack())) return;
 
-        if (selected.is(GameState.FREE_ITEM)) {
-            event.getTooltipElements().add(1, Either.right(new CraftingComponent(
-                    selected.copyWithCount(1),
-                    List.of()
-            )));
-        } else {
-            var matchingRecipes = GameState.getMatchingRecipes(selected);
-            if (matchingRecipes.isEmpty()) return;
-            var selectedRecipe = matchingRecipes.getFirst();
+        var matchingRecipes = GameState.getMatchingRecipes(selected);
+        if (matchingRecipes.isEmpty()) return;
+        var selectedRecipe = matchingRecipes.getFirst();
 
-            event.getTooltipElements().add(1, Either.right(new CraftingComponent(
-                    selectedRecipe.output(),
-                    selectedRecipe.ingredients()
-            )));
-        }
+        event.getTooltipElements().add(1, Either.right(new CraftingComponent(selectedRecipe)));
     }
 
     @SubscribeEvent

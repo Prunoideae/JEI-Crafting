@@ -41,15 +41,6 @@ public class JEICraftingPlugin implements IModPlugin {
                     Component.translatable("tooltip.jei_crafting.quick_craft.1")
             );
         }
-
-        for (ItemStack itemStack : registration.getIngredientManager().getAllItemStacks()) {
-            if (itemStack.is(GameState.FREE_ITEM)) {
-                registration.addIngredientInfo(itemStack, VanillaTypes.ITEM_STACK,
-                        Component.translatable("tooltip.jei_crafting.quick_craft.0"),
-                        Component.translatable("tooltip.jei_crafting.quick_craft.1")
-                );
-            }
-        }
     }
 
     @Nullable

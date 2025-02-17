@@ -1,6 +1,6 @@
 package moe.wolfgirl.jeicrafting.render;
 
-import moe.wolfgirl.jeicrafting.game.GameState;
+import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
@@ -8,14 +8,19 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import java.util.ArrayList;
 import java.util.List;
 
-public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients) implements TooltipComponent {
+public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients,
+                                List<ItemStack> uncraftsTo) implements TooltipComponent {
+
+    public CraftingComponent(JEICraftingRecipe recipe) {
+        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems());
+    }
 
     public boolean isUncraftable() {
-        return output.is(GameState.UNCRAFTABLE_ITEM);
+        return isFree() || !uncraftsTo.isEmpty();
     }
 
     public boolean isFree() {
-        return output.is(GameState.FREE_ITEM);
+        return ingredients.isEmpty();
     }
 
     public List<ItemStack> consolidateIngredients(int offsetTicks, int multiplier) {

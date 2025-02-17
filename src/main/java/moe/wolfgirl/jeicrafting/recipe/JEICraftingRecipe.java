@@ -21,7 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record JEICraftingRecipe(ItemStack output,
-                                List<SizedIngredient> ingredients) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+                                List<SizedIngredient> ingredients,
+                                List<ItemStack> uncraftingItems) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+    public boolean isFree() {
+        return ingredients.isEmpty();
+    }
+
+    public boolean isUncraftable() {
+        return isFree() || !uncraftingItems.isEmpty();
+    }
+
     @Override
     public boolean matches(@NotNull JeiCraftingInput jeiCraftingInput, @NotNull Level level) {
         for (SizedIngredient ingredient : ingredients) {
@@ -62,12 +71,14 @@ public record JEICraftingRecipe(ItemStack output,
         public static final MapCodec<JEICraftingRecipe> CODEC = RecordCodecBuilder.mapCodec(
                 data -> data.group(
                         ItemStack.CODEC.fieldOf("output").forGetter(JEICraftingRecipe::output),
-                        SizedIngredient.FLAT_CODEC.listOf().fieldOf("ingredients").forGetter(JEICraftingRecipe::ingredients)
+                        SizedIngredient.NESTED_CODEC.listOf().optionalFieldOf("ingredients", List.of()).forGetter(JEICraftingRecipe::ingredients),
+                        ItemStack.CODEC.listOf().optionalFieldOf("uncraftsTo", List.of()).forGetter(JEICraftingRecipe::uncraftingItems)
                 ).apply(data, JEICraftingRecipe::new)
         );
         public static final StreamCodec<RegistryFriendlyByteBuf, JEICraftingRecipe> STREAM_CODEC = StreamCodec.composite(
                 ItemStack.STREAM_CODEC, JEICraftingRecipe::output,
                 ByteBufCodecs.collection(ArrayList::new, SizedIngredient.STREAM_CODEC), JEICraftingRecipe::ingredients,
+                ByteBufCodecs.collection(ArrayList::new, ItemStack.STREAM_CODEC), JEICraftingRecipe::uncraftingItems,
                 JEICraftingRecipe::new
         );
 

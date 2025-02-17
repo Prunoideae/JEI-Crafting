@@ -2,14 +2,10 @@ package moe.wolfgirl.jeicrafting.game;
 
 import com.mojang.datafixers.util.Pair;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
-import moe.wolfgirl.jeicrafting.render.SpriteUploader;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -19,9 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
-    public static final TagKey<Item> FREE_ITEM = TagKey.create(Registries.ITEM, GameUtil.id("free_item"));
-    public static final TagKey<Item> UNCRAFTABLE_ITEM = TagKey.create(Registries.ITEM, GameUtil.id("uncraftable_item"));
-
     public static final ResourceLocation ARROW = GameUtil.id("recipe_arrow");
     public static final ResourceLocation ARROW_UNCRAFTING = GameUtil.id("recipe_arrow_reversed");
     public static final ResourceLocation MIDDLE_GOOD = GameUtil.id("middle_button");

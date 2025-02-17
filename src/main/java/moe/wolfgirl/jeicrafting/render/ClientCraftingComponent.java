@@ -36,7 +36,10 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
         if (craftingComponent.isFree()) {
             return 18 + 22 + 18;
         } else {
-            int inputWidth = craftingComponent.ingredients().size() * 18;
+            int inputWidth = (Screen.hasControlDown() && craftingComponent.isUncraftable() ?
+                    craftingComponent.uncraftsTo().size() :
+                    craftingComponent.ingredients().size()
+            ) * 18;
             return inputWidth + 22 + 18;
         }
 
@@ -57,8 +60,12 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
             guiGraphics.blit(x, y, 0, 18, 18, SpriteUploader.getTexture(GameState.VOID));
             offset = x + 18;
         } else {
-            List<ItemStack> inputs = craftingComponent.consolidateIngredients(offsetTick, multiplier);
-
+            List<ItemStack> inputs;
+            if (uncrafting && craftingComponent.isUncraftable()) {
+                inputs = craftingComponent.uncraftsTo().stream().map(s -> s.copyWithCount(s.getCount() * multiplier)).toList();
+            } else {
+                inputs = craftingComponent.consolidateIngredients(offsetTick, multiplier);
+            }
             for (int i = 0; i < inputs.size(); i++) {
                 var iOffset = i * 18;
                 guiGraphics.renderItem(inputs.get(i), iOffset + x, y);
@@ -69,7 +76,7 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
         }
 
 
-        if (uncrafting && (craftingComponent.isUncraftable() || craftingComponent.isFree())) {
+        if (uncrafting && craftingComponent.isUncraftable()) {
             guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(GameState.ARROW_UNCRAFTING));
         } else {
             guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(GameState.ARROW));

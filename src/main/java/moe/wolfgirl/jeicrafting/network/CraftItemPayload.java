@@ -31,16 +31,6 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
     public void handle(IPayloadContext context) {
         var player = context.player();
-
-        if (itemStack.is(GameState.FREE_ITEM)) {
-            if (uncrafting) {
-                GameUtil.countOrTakeItems(itemStack, player, multiplier);
-            } else {
-                ItemHandlerHelper.giveItemToPlayer(player, itemStack.copyWithCount(multiplier));
-            }
-            return;
-        }
-
         var recipes = GameState.getMatchingRecipes(itemStack);
         if (recipes.isEmpty()) {
             return; // Prevent people from maliciously sending non-craftable items and crash the server
@@ -48,17 +38,16 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
         var recipe = recipes.get(offset);
         if (uncrafting) {
-            if (!itemStack.is(GameState.UNCRAFTABLE_ITEM)) return;
+            if (recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;
             if (GameUtil.countItems(recipe.output(), player) < expected) {
                 return;
             }
             GameUtil.countOrTakeItems(recipe.output(), player, expected);
 
-            for (SizedIngredient ingredient : recipe.ingredients()) {
-                int shouldGive = ingredient.count() * multiplier;
-                if (ingredient.getItems().length == 0) continue;
-                ItemHandlerHelper.giveItemToPlayer(player, ingredient.getItems()[0].copyWithCount(shouldGive), -1);
+            for (ItemStack uncraftingItems : recipe.uncraftingItems()) {
+                int shouldGive = uncraftingItems.getCount() * multiplier;
+                ItemHandlerHelper.giveItemToPlayer(player, uncraftingItems.copyWithCount(shouldGive), -1);
             }
         } else {
             for (SizedIngredient ingredient : recipe.ingredients()) {

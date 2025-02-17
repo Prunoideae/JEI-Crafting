@@ -9,6 +9,12 @@
             "name": "ingredients",
             "role": "input",
             "type": "flat_sized_ingredient[]"
+        },
+        {
+            "name": "uncraftingItems",
+            "role": "other",
+            "type": "item_stack[]",
+            "optional": null
         }
     ]
 }
