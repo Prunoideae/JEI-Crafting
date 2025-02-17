@@ -1,0 +1,9 @@
+{
+    "sources": [
+        {
+            "type": "directory",
+            "source": "jei_crafting/atlas/gui",
+            "prefix": ""
+        }
+    ]
+}

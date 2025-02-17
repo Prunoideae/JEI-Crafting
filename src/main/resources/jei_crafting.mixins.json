@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "moe.wolfgirl.jeicrafting.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "jei-crafting.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

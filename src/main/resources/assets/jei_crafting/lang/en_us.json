@@ -1,0 +1,4 @@
+{
+    "tooltip.jei_crafting.quick_craft.0": "Craftable by middle-clicking the item icon in the JEI item list or bookmark.",
+    "tooltip.jei_crafting.quick_craft.1": "Press Alt or Shift to change the amount crafted each time. Some items are also uncraftable by pressing the Ctrl key."
+}
