@@ -9,7 +9,6 @@ import moe.wolfgirl.jeicrafting.game.GameState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,10 +35,12 @@ public class JEICraftingPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
-        registration.addItemStackInfo(GameState.getOutputItems(),
-                Component.translatable("tooltip.jei_crafting.quick_craft.0"),
-                Component.translatable("tooltip.jei_crafting.quick_craft.1")
-        );
+        for (ItemStack outputItem : GameState.getOutputItems()) {
+            registration.addItemStackInfo(outputItem,
+                    Component.translatable("tooltip.jei_crafting.quick_craft.0"),
+                    Component.translatable("tooltip.jei_crafting.quick_craft.1")
+            );
+        }
 
         for (ItemStack itemStack : registration.getIngredientManager().getAllItemStacks()) {
             if (itemStack.is(GameState.FREE_ITEM)) {

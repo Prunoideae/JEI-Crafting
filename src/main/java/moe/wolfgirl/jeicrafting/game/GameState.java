@@ -12,6 +12,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -48,15 +49,18 @@ public class GameState {
         return RECIPES.stream().map(JEICraftingRecipe::output).toList();
     }
 
+    public static void reloadRecipes(RecipeManager recipeManager) {
+        cache = null;
+        RECIPES.clear();
+        for (RecipeHolder<JEICraftingRecipe> holder : recipeManager.getAllRecipesFor(GameRegistries.RecipeTypes.JEI_CRAFTING.get())) {
+            RECIPES.add(holder.value());
+        }
+    }
+
     public record ReloadListener(ReloadableServerResources resources) implements ResourceManagerReloadListener {
         @Override
         public void onResourceManagerReload(@NotNull ResourceManager resourceManager) {
-            var recipeManager = resources.getRecipeManager();
-            cache = null;
-            RECIPES.clear();
-            for (RecipeHolder<JEICraftingRecipe> holder : recipeManager.getAllRecipesFor(GameRegistries.RecipeTypes.JEI_CRAFTING.get())) {
-                RECIPES.add(holder.value());
-            }
+            reloadRecipes(resources.getRecipeManager());
         }
     }
 }
