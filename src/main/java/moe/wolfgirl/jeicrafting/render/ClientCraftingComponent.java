@@ -98,7 +98,7 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
             if (!component.isUncraftable()) {
                 return GameState.MIDDLE_DISABLED;
             }
-            if (GameUtil.countItems(component.output(), player) > component.output().getCount() * multiplier) {
+            if (GameUtil.countItems(component.output(), player) >= component.output().getCount() * multiplier) {
                 return GameState.MIDDLE_GOOD;
             } else {
                 return GameState.MIDDLE_BAD;

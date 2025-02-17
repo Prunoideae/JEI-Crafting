@@ -38,7 +38,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
         var recipe = recipes.get(offset);
         if (uncrafting) {
-            if (recipe.isUncraftable()) return;
+            if (!recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;
             if (GameUtil.countItems(recipe.output(), player) < expected) {
                 return;
