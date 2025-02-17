@@ -107,7 +107,7 @@ repositories {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
-    compileOnly("mezz.jei:jei-${minecraft_version_detail}-neoforge-api:${jei_version}")
+    compileOnly("mezz.jei:jei-${minecraft_version_detail}-neoforge:${jei_version}")
     runtimeOnly("mezz.jei:jei-${minecraft_version_detail}-neoforge:${jei_version}")
 
 }

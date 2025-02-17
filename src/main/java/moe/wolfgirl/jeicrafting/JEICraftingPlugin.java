@@ -5,6 +5,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
+import mezz.jei.common.Internal;
 import moe.wolfgirl.jeicrafting.game.GameState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -50,7 +51,7 @@ public class JEICraftingPlugin implements IModPlugin {
 
     @Nullable
     public static ItemStack getSelectedItem() {
-        if (runtime == null) return null;
+        if (runtime == null || Internal.getClientToggleState().isCheatItemsEnabled()) return null;
         var stack = runtime.getIngredientListOverlay().getIngredientUnderMouse(VanillaTypes.ITEM_STACK);
         if (stack == null) stack = runtime.getBookmarkOverlay().getItemStackUnderMouse();
         return stack;
