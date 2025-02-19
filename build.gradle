@@ -109,7 +109,8 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version_detail}-neoforge:${jei_version}")
     runtimeOnly("mezz.jei:jei-${minecraft_version_detail}-neoforge:${jei_version}")
-
+    api("dev.latvian.mods:rhino:$rhino_version") { transitive(false) }
+    api("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
 }
 
 

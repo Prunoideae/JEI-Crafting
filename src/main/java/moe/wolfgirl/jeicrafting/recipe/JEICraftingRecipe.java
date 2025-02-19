@@ -1,5 +1,6 @@
 package moe.wolfgirl.jeicrafting.recipe;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import moe.wolfgirl.jeicrafting.game.GameRegistries;
@@ -22,13 +23,18 @@ import java.util.List;
 
 public record JEICraftingRecipe(ItemStack output,
                                 List<SizedIngredient> ingredients,
-                                List<ItemStack> uncraftingItems) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+                                List<ItemStack> uncraftingItems,
+                                int craftInTicks) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
     public boolean isFree() {
         return ingredients.isEmpty();
     }
 
     public boolean isUncraftable() {
         return isFree() || !uncraftingItems.isEmpty();
+    }
+
+    public boolean isInstant() {
+        return craftInTicks <= 0;
     }
 
     @Override
@@ -72,13 +78,15 @@ public record JEICraftingRecipe(ItemStack output,
                 data -> data.group(
                         ItemStack.CODEC.fieldOf("output").forGetter(JEICraftingRecipe::output),
                         SizedIngredient.NESTED_CODEC.listOf().optionalFieldOf("ingredients", List.of()).forGetter(JEICraftingRecipe::ingredients),
-                        ItemStack.CODEC.listOf().optionalFieldOf("uncraftsTo", List.of()).forGetter(JEICraftingRecipe::uncraftingItems)
+                        ItemStack.CODEC.listOf().optionalFieldOf("uncraftsTo", List.of()).forGetter(JEICraftingRecipe::uncraftingItems),
+                        Codec.INT.optionalFieldOf("craftInTicks", 10).forGetter(JEICraftingRecipe::craftInTicks)
                 ).apply(data, JEICraftingRecipe::new)
         );
         public static final StreamCodec<RegistryFriendlyByteBuf, JEICraftingRecipe> STREAM_CODEC = StreamCodec.composite(
                 ItemStack.STREAM_CODEC, JEICraftingRecipe::output,
                 ByteBufCodecs.collection(ArrayList::new, SizedIngredient.STREAM_CODEC), JEICraftingRecipe::ingredients,
                 ByteBufCodecs.collection(ArrayList::new, ItemStack.STREAM_CODEC), JEICraftingRecipe::uncraftingItems,
+                ByteBufCodecs.INT, JEICraftingRecipe::craftInTicks,
                 JEICraftingRecipe::new
         );
 

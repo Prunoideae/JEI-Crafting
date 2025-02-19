@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients,
-                                List<ItemStack> uncraftsTo) implements TooltipComponent {
+                                List<ItemStack> uncraftsTo,
+                                int craftInTicks) implements TooltipComponent {
 
     public CraftingComponent(JEICraftingRecipe recipe) {
-        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems());
+        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.craftInTicks());
     }
 
     public boolean isUncraftable() {
@@ -21,6 +22,10 @@ public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredie
 
     public boolean isFree() {
         return ingredients.isEmpty();
+    }
+
+    public boolean isInstant() {
+        return craftInTicks <= 0;
     }
 
     public List<ItemStack> consolidateIngredients(int offsetTicks, int multiplier) {

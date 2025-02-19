@@ -1,13 +1,14 @@
 package moe.wolfgirl.jeicrafting.render;
 
+import moe.wolfgirl.jeicrafting.game.ClientState;
 import moe.wolfgirl.jeicrafting.game.GameConfig;
-import moe.wolfgirl.jeicrafting.game.GameState;
 import moe.wolfgirl.jeicrafting.game.GameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -57,7 +58,7 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
 
         int offset;
         if (craftingComponent.isFree()) {
-            guiGraphics.blit(x, y, 0, 18, 18, SpriteUploader.getTexture(GameState.VOID));
+            guiGraphics.blit(x, y, 0, 18, 18, SpriteUploader.getTexture(ClientState.VOID));
             offset = x + 18;
         } else {
             List<ItemStack> inputs;
@@ -75,15 +76,26 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
             offset = x + inputs.size() * 18;
         }
 
-
-        if (uncrafting && craftingComponent.isUncraftable()) {
-            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(GameState.ARROW_UNCRAFTING));
+        ResourceLocation foreground = uncrafting && craftingComponent.isUncraftable() ? ClientState.ARROW_UNCRAFTING : ClientState.ARROW;
+        ResourceLocation background = uncrafting && craftingComponent.isUncraftable() ? ClientState.ARROW_UNCRAFTING_BG : ClientState.ARROW_BG;
+        ResourceLocation status = getCraftingStatus(Minecraft.getInstance().player, craftingComponent, multiplier, uncrafting);
+        if (craftingComponent.isInstant()) {
+            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(status == ClientState.MIDDLE_GOOD ? foreground : background));
         } else {
-            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(GameState.ARROW));
+            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(background));
+            if (ClientState.NEXT_CRAFT_TICK != -1 && status == ClientState.MIDDLE_GOOD) {
+                int width = 23;
+                int remainedTicks = ClientState.NEXT_CRAFT_TICK - player.tickCount;
+                int activeWidth = (int) (width * (1 - ((float) remainedTicks / craftingComponent.craftInTicks())));
+                if (!uncrafting) {
+                    guiGraphics.blitSprite(SpriteUploader.getTexture(foreground), 23, 16, 0, 0, offset, y, 0, activeWidth, 16);
+                } else {
+                    guiGraphics.blitSprite(SpriteUploader.getTexture(foreground), 23, 16, width - activeWidth, 0, offset + width - activeWidth, y, 0, activeWidth, 16);
+                }
+            }
         }
-        guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(
-                getCraftingStatus(Minecraft.getInstance().player, craftingComponent, multiplier, uncrafting)
-        ));
+
+        guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(status));
         offset += 23;
 
         var output = craftingComponent.output();
@@ -92,25 +104,25 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
     }
 
     private static ResourceLocation getCraftingStatus(Player player, CraftingComponent component, int multiplier, boolean uncrafting) {
-        if (component.isFree()) return GameState.MIDDLE_GOOD;
+        if (component.isFree()) return ClientState.MIDDLE_GOOD;
 
         if (uncrafting) {
             if (!component.isUncraftable()) {
-                return GameState.MIDDLE_DISABLED;
+                return ClientState.MIDDLE_DISABLED;
             }
             if (GameUtil.countItems(component.output(), player) >= component.output().getCount() * multiplier) {
-                return GameState.MIDDLE_GOOD;
+                return ClientState.MIDDLE_GOOD;
             } else {
-                return GameState.MIDDLE_BAD;
+                return ClientState.MIDDLE_BAD;
             }
         } else {
             for (SizedIngredient ingredient : component.ingredients()) {
                 int expected = ingredient.count() * multiplier;
                 if (GameUtil.countItems(ingredient.ingredient(), player) < expected) {
-                    return GameState.MIDDLE_BAD;
+                    return ClientState.MIDDLE_BAD;
                 }
             }
-            return GameState.MIDDLE_GOOD;
+            return ClientState.MIDDLE_GOOD;
         }
     }
 }
