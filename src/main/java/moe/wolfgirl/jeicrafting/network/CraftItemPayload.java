@@ -1,11 +1,15 @@
 package moe.wolfgirl.jeicrafting.network;
 
+import moe.wolfgirl.jeicrafting.compat.JeiCraftCallback;
+import moe.wolfgirl.jeicrafting.compat.JeiUncraftCallback;
 import moe.wolfgirl.jeicrafting.game.GameState;
 import moe.wolfgirl.jeicrafting.game.GameUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -31,25 +35,37 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
     public void handle(IPayloadContext context) {
         var player = context.player();
-        var recipes = GameState.getMatchingRecipes(itemStack);
-        if (recipes.isEmpty()) {
+        var pairs = GameState.getMatchingRecipeAndId(itemStack);
+
+        if (pairs.isEmpty()) {
             return; // Prevent people from maliciously sending non-craftable items and crash the server
         }
 
-        var recipe = recipes.get(offset);
+        var id = pairs.get(offset).getFirst();
+        var recipe = pairs.get(offset).getSecond();
+
         if (uncrafting) {
             if (!recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;
+            var results = JeiUncraftCallback.stopAtFirstModification(player, id, recipe);
+            if (results.isEmpty()) {
+                player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
+                return;
+            }
             if (GameUtil.countItems(recipe.output(), player) < expected) {
                 return;
             }
             GameUtil.countOrTakeItems(recipe.output(), player, expected);
-
-            for (ItemStack uncraftingItems : recipe.uncraftingItems()) {
+            for (ItemStack uncraftingItems : results) {
                 int shouldGive = uncraftingItems.getCount() * multiplier;
                 ItemHandlerHelper.giveItemToPlayer(player, uncraftingItems.copyWithCount(shouldGive), -1);
             }
         } else {
+            var result = JeiCraftCallback.stopAtFirstModification(player, id, recipe);
+            if (result.isEmpty()) {
+                player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
+                return;
+            }
             for (SizedIngredient ingredient : recipe.ingredients()) {
                 int expected = ingredient.count() * multiplier;
                 if (GameUtil.countItems(ingredient.ingredient(), player) < expected) {
@@ -62,7 +78,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
                 GameUtil.countOrTakeItems(ingredient.ingredient(), player, expected);
             }
 
-            ItemHandlerHelper.giveItemToPlayer(player, recipe.output().copyWithCount(recipe.output().getCount() * multiplier), -1);
+            ItemHandlerHelper.giveItemToPlayer(player, result.copyWithCount(result.getCount() * multiplier), -1);
         }
     }
 }
