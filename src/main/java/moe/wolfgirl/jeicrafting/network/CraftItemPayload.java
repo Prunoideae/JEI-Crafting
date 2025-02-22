@@ -33,15 +33,13 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
     public void handle(IPayloadContext context) {
         var player = context.player();
-        var pairs = GameState.getMatchingRecipeAndId(itemStack);
+        var recipes = GameState.getMatchingRecipes(itemStack);
 
-        if (offset >= pairs.size()) {
+        if (offset >= recipes.size()) {
             return; // Prevent people from maliciously sending non-craftable items and crash the server
         }
-
-        var id = pairs.get(offset).getFirst();
-        var recipe = pairs.get(offset).getSecond();
-
+        
+        var recipe = recipes.get(offset);
         if (uncrafting) {
             if (!recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;

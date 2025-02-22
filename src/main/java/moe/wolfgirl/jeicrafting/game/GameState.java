@@ -34,20 +34,6 @@ public class GameState {
         return cache.getSecond();
     }
 
-    public static List<Pair<ResourceLocation, JEICraftingRecipe>> getMatchingRecipeAndId(ItemStack output) {
-        var matched = new ArrayList<Pair<ResourceLocation, JEICraftingRecipe>>();
-
-        for (Map.Entry<ResourceLocation, JEICraftingRecipe> entry : RECIPES.entrySet()) {
-            ResourceLocation id = entry.getKey();
-            JEICraftingRecipe recipe = entry.getValue();
-
-            if (ItemStack.isSameItemSameComponents(output, recipe.output())) {
-                matched.add(Pair.of(id, recipe));
-            }
-        }
-        return matched;
-    }
-
     public static List<ItemStack> getOutputItems() {
         return RECIPES.values().stream().map(JEICraftingRecipe::output).toList();
     }
