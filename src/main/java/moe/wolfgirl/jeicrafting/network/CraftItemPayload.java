@@ -1,7 +1,5 @@
 package moe.wolfgirl.jeicrafting.network;
 
-import moe.wolfgirl.jeicrafting.compat.JeiCraftCallback;
-import moe.wolfgirl.jeicrafting.compat.JeiUncraftCallback;
 import moe.wolfgirl.jeicrafting.game.GameState;
 import moe.wolfgirl.jeicrafting.game.GameUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -37,7 +35,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
         var player = context.player();
         var pairs = GameState.getMatchingRecipeAndId(itemStack);
 
-        if (pairs.isEmpty()) {
+        if (offset >= pairs.size()) {
             return; // Prevent people from maliciously sending non-craftable items and crash the server
         }
 
@@ -47,7 +45,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
         if (uncrafting) {
             if (!recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;
-            var results = JeiUncraftCallback.stopAtFirstModification(player, id, recipe);
+            var results = recipe.uncraftingItems();
             if (results.isEmpty()) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
@@ -61,7 +59,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
                 ItemHandlerHelper.giveItemToPlayer(player, uncraftingItems.copyWithCount(shouldGive), -1);
             }
         } else {
-            var result = JeiCraftCallback.stopAtFirstModification(player, id, recipe);
+            var result = recipe.output();
             if (result.isEmpty()) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
