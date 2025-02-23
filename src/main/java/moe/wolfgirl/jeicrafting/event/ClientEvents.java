@@ -6,7 +6,7 @@ import moe.wolfgirl.jeicrafting.JEICraftingPlugin;
 import moe.wolfgirl.jeicrafting.game.ClientState;
 import moe.wolfgirl.jeicrafting.game.GameConfig;
 import moe.wolfgirl.jeicrafting.game.GameState;
-import moe.wolfgirl.jeicrafting.network.CraftItemPayload;
+import moe.wolfgirl.jeicrafting.data.CraftItemPayload;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
 import moe.wolfgirl.jeicrafting.render.CraftingComponent;
 import net.minecraft.client.Minecraft;

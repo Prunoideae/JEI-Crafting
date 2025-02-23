@@ -3,6 +3,7 @@ package moe.wolfgirl.jeicrafting.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import moe.wolfgirl.jeicrafting.data.PlayerResources;
 import moe.wolfgirl.jeicrafting.game.GameRegistries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -20,11 +21,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public record JEICraftingRecipe(ItemStack output,
                                 List<SizedIngredient> ingredients,
+                                List<PlayerResources.PlayerResource> resources,
                                 List<ItemStack> uncraftingItems,
-                                int craftInTicks) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+                                int craftInTicks,
+                                Optional<List<String>> stages) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
     public boolean isFree() {
         return ingredients.isEmpty();
     }
@@ -78,15 +82,19 @@ public record JEICraftingRecipe(ItemStack output,
                 data -> data.group(
                         ItemStack.CODEC.fieldOf("output").forGetter(JEICraftingRecipe::output),
                         SizedIngredient.NESTED_CODEC.listOf().optionalFieldOf("ingredients", List.of()).forGetter(JEICraftingRecipe::ingredients),
+                        PlayerResources.PlayerResource.CODEC.listOf().optionalFieldOf("resources", List.of()).forGetter(JEICraftingRecipe::resources),
                         ItemStack.CODEC.listOf().optionalFieldOf("uncraftsTo", List.of()).forGetter(JEICraftingRecipe::uncraftingItems),
-                        Codec.INT.optionalFieldOf("craftInTicks", 10).forGetter(JEICraftingRecipe::craftInTicks)
+                        Codec.INT.optionalFieldOf("craftInTicks", 10).forGetter(JEICraftingRecipe::craftInTicks),
+                        Codec.STRING.listOf().optionalFieldOf("stages").forGetter(JEICraftingRecipe::stages)
                 ).apply(data, JEICraftingRecipe::new)
         );
         public static final StreamCodec<RegistryFriendlyByteBuf, JEICraftingRecipe> STREAM_CODEC = StreamCodec.composite(
                 ItemStack.STREAM_CODEC, JEICraftingRecipe::output,
                 ByteBufCodecs.collection(ArrayList::new, SizedIngredient.STREAM_CODEC), JEICraftingRecipe::ingredients,
+                ByteBufCodecs.collection(ArrayList::new, PlayerResources.PlayerResource.STREAM_CODEC), JEICraftingRecipe::resources,
                 ByteBufCodecs.collection(ArrayList::new, ItemStack.STREAM_CODEC), JEICraftingRecipe::uncraftingItems,
                 ByteBufCodecs.INT, JEICraftingRecipe::craftInTicks,
+                ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)), JEICraftingRecipe::stages,
                 JEICraftingRecipe::new
         );
 

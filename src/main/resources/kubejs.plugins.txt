@@ -1,1 +1,1 @@
-moe.wolfgirl.jeicrafting.compat.kubejs.JEICraftingKubePlugin
+moe.wolfgirl.jeicrafting.compat.kubejs.JEICKubePlugin

@@ -1,6 +1,9 @@
 package moe.wolfgirl.jeicrafting.render;
 
+import moe.wolfgirl.jeicrafting.data.PlayerResourceType;
+import moe.wolfgirl.jeicrafting.data.PlayerResources;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
@@ -10,18 +13,19 @@ import java.util.List;
 
 public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients,
                                 List<ItemStack> uncraftsTo,
+                                List<PlayerResources.PlayerResource> resources,
                                 int craftInTicks) implements TooltipComponent {
 
     public CraftingComponent(JEICraftingRecipe recipe) {
-        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.craftInTicks());
+        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.resources(), recipe.craftInTicks());
     }
 
     public boolean isUncraftable() {
-        return isFree() || !uncraftsTo.isEmpty();
+        return isFree() || !uncraftsTo.isEmpty() || !resources.isEmpty();
     }
 
     public boolean isFree() {
-        return ingredients.isEmpty();
+        return ingredients.isEmpty( ) && resources.isEmpty();
     }
 
     public boolean isInstant() {
@@ -40,4 +44,5 @@ public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredie
 
         return itemStacks;
     }
+
 }
