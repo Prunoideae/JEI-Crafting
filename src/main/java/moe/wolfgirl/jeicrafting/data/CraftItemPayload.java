@@ -98,7 +98,6 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
                 int current = data.holding().getOrDefault(resource.id(), 0);
                 data.holding().put(resource.id(), current - expected);
             }
-
             ItemHandlerHelper.giveItemToPlayer(player, result.copyWithCount(result.getCount() * multiplier), -1);
         }
         data.notifyClient((ServerPlayer) player);

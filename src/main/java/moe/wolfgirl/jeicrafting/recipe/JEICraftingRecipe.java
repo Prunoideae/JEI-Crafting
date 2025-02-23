@@ -29,12 +29,13 @@ public record JEICraftingRecipe(ItemStack output,
                                 List<ItemStack> uncraftingItems,
                                 int craftInTicks,
                                 Optional<List<String>> stages) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+
     public boolean isFree() {
-        return ingredients.isEmpty();
+        return ingredients.isEmpty() && resources.isEmpty();
     }
 
     public boolean isUncraftable() {
-        return isFree() || !uncraftingItems.isEmpty();
+        return isFree() || !uncraftingItems.isEmpty() || !resources.isEmpty();
     }
 
     public boolean isInstant() {

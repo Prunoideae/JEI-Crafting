@@ -1,6 +1,7 @@
 package moe.wolfgirl.jeicrafting.event;
 
 import moe.wolfgirl.jeicrafting.data.CraftItemPayload;
+import moe.wolfgirl.jeicrafting.data.FakeItemPickupPayload;
 import moe.wolfgirl.jeicrafting.data.PlayerResourceType;
 import moe.wolfgirl.jeicrafting.data.UpdateResourcePayload;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,6 +17,7 @@ public class ModEvents {
 
         registry.playToServer(CraftItemPayload.TYPE, CraftItemPayload.STREAM_CODEC, CraftItemPayload::handle);
         registry.playToClient(UpdateResourcePayload.TYPE, UpdateResourcePayload.STREAM_CODEC, UpdateResourcePayload::handle);
+        registry.playToClient(FakeItemPickupPayload.TYPE, FakeItemPickupPayload.STREAM_CODEC, FakeItemPickupPayload::handle);
     }
 
     @SubscribeEvent

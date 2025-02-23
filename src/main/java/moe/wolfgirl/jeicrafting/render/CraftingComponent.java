@@ -1,9 +1,7 @@
 package moe.wolfgirl.jeicrafting.render;
 
-import moe.wolfgirl.jeicrafting.data.PlayerResourceType;
 import moe.wolfgirl.jeicrafting.data.PlayerResources;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;

@@ -8,13 +8,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-public record PlayerResourceType(ItemStack representativeItem, int max) {
+public record PlayerResourceType(ItemStack representativeItem) {
     public static final ResourceKey<Registry<PlayerResourceType>> REGISTRY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(JEICrafting.MODID, "resource_type"));
 
     public static final Codec<PlayerResourceType> DIRECT_CODEC = RecordCodecBuilder.create(
             data -> data.group(
-                    ItemStack.CODEC.fieldOf("itemIcon").forGetter(PlayerResourceType::representativeItem),
-                    Codec.INT.optionalFieldOf("max", 1000000).forGetter(PlayerResourceType::max)
+                    ItemStack.CODEC.fieldOf("itemIcon").forGetter(PlayerResourceType::representativeItem)
             ).apply(data, PlayerResourceType::new)
     );
 }

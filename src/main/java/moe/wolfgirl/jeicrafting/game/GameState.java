@@ -1,6 +1,7 @@
 package moe.wolfgirl.jeicrafting.game;
 
 import com.mojang.datafixers.util.Pair;
+import moe.wolfgirl.jeicrafting.recipe.ConvertToResourceRecipe;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
@@ -9,6 +10,8 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -17,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GameState {
-
+    public static final Lazy<RecipeManager.CachedCheck<SingleRecipeInput, ConvertToResourceRecipe>> CONVERSION_CHECK = Lazy.of(() -> RecipeManager.createCheck(GameRegistries.RecipeTypes.CONVERT_TO_RESOURCE.get()));
     public static final Map<ResourceLocation, JEICraftingRecipe> RECIPES = new HashMap<>();
     private static Pair<ItemStack, List<JEICraftingRecipe>> cache = null;
 

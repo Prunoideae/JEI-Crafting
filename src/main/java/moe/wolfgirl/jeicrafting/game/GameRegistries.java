@@ -2,6 +2,7 @@ package moe.wolfgirl.jeicrafting.game;
 
 import moe.wolfgirl.jeicrafting.JEICrafting;
 import moe.wolfgirl.jeicrafting.data.PlayerResources;
+import moe.wolfgirl.jeicrafting.recipe.ConvertToResourceRecipe;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -19,12 +20,17 @@ public class GameRegistries {
         private static final DeferredRegister<RecipeSerializer<?>> REGISTRY = DeferredRegister.create(Registries.RECIPE_SERIALIZER, JEICrafting.MODID);
 
         public static final Supplier<RecipeSerializer<JEICraftingRecipe>> JEI_CRAFTING = REGISTRY.register("jei_crafting", JEICraftingRecipe.Serializer::new);
+        public static final Supplier<RecipeSerializer<ConvertToResourceRecipe>> CONVERT_TO_RESOURCE = REGISTRY.register("convert_to_resource", ConvertToResourceRecipe.Serializer::new);
     }
+
 
     public static class RecipeTypes {
         private static final DeferredRegister<RecipeType<?>> REGISTRY = DeferredRegister.create(Registries.RECIPE_TYPE, JEICrafting.MODID);
 
         public static final Supplier<RecipeType<JEICraftingRecipe>> JEI_CRAFTING = REGISTRY.register("jei_crafting", () -> new RecipeType<>() {
+        });
+
+        public static final Supplier<RecipeType<ConvertToResourceRecipe>> CONVERT_TO_RESOURCE = REGISTRY.register("convert_to_resource", () -> new RecipeType<>() {
         });
     }
 

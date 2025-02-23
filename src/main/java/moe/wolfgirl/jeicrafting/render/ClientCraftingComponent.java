@@ -86,7 +86,6 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
             }
         }
 
-        guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(status));
         offset += 23;
 
         var output = craftingComponent.output();
