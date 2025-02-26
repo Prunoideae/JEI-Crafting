@@ -10,7 +10,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,12 +20,15 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientCraftingComponent implements ClientTooltipComponent {
     private final CraftingComponent craftingComponent;
+    private int tickCount = 0;
+    private List<String> missingStages = List.of();
 
     public ClientCraftingComponent(CraftingComponent craftingComponent) {
         this.craftingComponent = craftingComponent;
@@ -31,21 +36,45 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
 
     @Override
     public int getHeight() {
-        return 20;
+        return 20 + 10 * getMissingStages().size();
     }
 
     @Override
     public int getWidth(@NotNull Font font) {
+        int textWidth = 0;
+        for (String missingStage : getMissingStages()) {
+            int lineWidth = font.width(Component.translatable("tooltip.jei_crafting.missing_stage.%s".formatted(missingStage)));
+            if (lineWidth > textWidth) textWidth = lineWidth;
+        }
         if (craftingComponent.isFree()) {
-            return 18 + 22 + 18;
+            return Math.max(18 + 22 + 18, textWidth);
         } else {
             int inputWidth = (Screen.hasControlDown() && craftingComponent.isUncraftable() ?
                     craftingComponent.uncraftsTo().size() :
                     craftingComponent.ingredients().size()
             ) * 18;
-            return inputWidth + 22 + 18;
+            return Math.max(inputWidth + 22 + 18, textWidth);
         }
 
+    }
+
+    private List<String> getMissingStages() {
+        Player player = Minecraft.getInstance().player;
+        if (player == null || player.tickCount == tickCount) return missingStages;
+        missingStages = craftingComponent.getMissingStages(player);
+        tickCount = player.tickCount;
+        return missingStages;
+    }
+
+    @Override
+    public void renderText(@NotNull Font font, int x, int y, @NotNull Matrix4f matrix, MultiBufferSource.@NotNull BufferSource bufferSource) {
+        y++;
+        var stages = getMissingStages();
+        for (int i = 0; i < stages.size(); i++) {
+            String missingStage = stages.get(i);
+            Component key = Component.translatable("tooltip.jei_crafting.missing_stage.%s".formatted(missingStage));
+            font.drawInBatch(key.getVisualOrderText(), x, y + i * 10, -1, true, matrix, bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+        }
     }
 
     @Override
@@ -53,7 +82,7 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        y++;
+        y += 1 + 10 * getMissingStages().size();
         int multiplier = GameConfig.getCurrentMultiplier();
         boolean uncrafting = Screen.hasControlDown();
         boolean canPerformUncrafting = uncrafting && craftingComponent.isUncraftable();
@@ -69,12 +98,12 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
 
         ResourceLocation foreground = canPerformUncrafting ? ClientState.ARROW_UNCRAFTING : ClientState.ARROW;
         ResourceLocation background = canPerformUncrafting ? ClientState.ARROW_UNCRAFTING_BG : ClientState.ARROW_BG;
-        ResourceLocation status = getCraftingStatus(Minecraft.getInstance().player, craftingComponent, multiplier, uncrafting);
+        boolean canCraft = canCraft(player, multiplier, uncrafting);
         if (craftingComponent.isInstant()) {
-            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(status == ClientState.MIDDLE_GOOD ? foreground : background));
+            guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(canCraft ? foreground : background));
         } else {
             guiGraphics.blit(offset, y, 0, 23, 16, SpriteUploader.getTexture(background));
-            if (ClientState.NEXT_CRAFT_TICK != -1 && status == ClientState.MIDDLE_GOOD) {
+            if (ClientState.NEXT_CRAFT_TICK != -1 && canCraft) {
                 int width = 23;
                 int remainedTicks = ClientState.NEXT_CRAFT_TICK - player.tickCount;
                 int activeWidth = (int) (width * (1 - ((float) remainedTicks / craftingComponent.craftInTicks())));
@@ -84,6 +113,10 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
                     guiGraphics.blitSprite(SpriteUploader.getTexture(foreground), 23, 16, width - activeWidth, 0, offset + width - activeWidth, y, 0, activeWidth, 16);
                 }
             }
+        }
+
+        if (!canCraft) {
+            guiGraphics.blit(offset + 4, y, 0, 16, 16, SpriteUploader.getTexture(ClientState.UNAVAILABLE));
         }
 
         offset += 23;
@@ -134,26 +167,19 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
         return inputs.size() * 18;
     }
 
-    private static ResourceLocation getCraftingStatus(Player player, CraftingComponent component, int multiplier, boolean uncrafting) {
-        if (component.isFree()) return ClientState.MIDDLE_GOOD;
+    private boolean canCraft(Player player, int multiplier, boolean uncrafting) {
+        if (!getMissingStages().isEmpty()) return false;
+        if (craftingComponent.isFree()) return true;
 
         if (uncrafting) {
-            if (!component.isUncraftable()) {
-                return ClientState.MIDDLE_DISABLED;
-            }
-            if (GameUtil.countItems(component.output(), player) >= component.output().getCount() * multiplier) {
-                return ClientState.MIDDLE_GOOD;
-            } else {
-                return ClientState.MIDDLE_BAD;
-            }
+            if (!craftingComponent.isUncraftable()) return false;
+            return GameUtil.countItems(craftingComponent.output(), player) >= craftingComponent.output().getCount() * multiplier;
         } else {
-            for (SizedIngredient ingredient : component.ingredients()) {
+            for (SizedIngredient ingredient : craftingComponent.ingredients()) {
                 int expected = ingredient.count() * multiplier;
-                if (GameUtil.countItems(ingredient.ingredient(), player) < expected) {
-                    return ClientState.MIDDLE_BAD;
-                }
+                if (GameUtil.countItems(ingredient.ingredient(), player) < expected) return false;
             }
-            return ClientState.MIDDLE_GOOD;
+            return true;
         }
     }
 

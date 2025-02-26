@@ -1,7 +1,9 @@
 package moe.wolfgirl.jeicrafting.render;
 
+import moe.wolfgirl.jeicrafting.compat.StagePredicate;
 import moe.wolfgirl.jeicrafting.data.PlayerResources;
 import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
@@ -12,10 +14,11 @@ import java.util.List;
 public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients,
                                 List<ItemStack> uncraftsTo,
                                 List<PlayerResources.PlayerResource> resources,
+                                List<String> stages,
                                 int craftInTicks) implements TooltipComponent {
 
     public CraftingComponent(JEICraftingRecipe recipe) {
-        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.resources(), recipe.craftInTicks());
+        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.resources(), recipe.stages().orElse(List.of()), recipe.craftInTicks());
     }
 
     public boolean isUncraftable() {
@@ -23,7 +26,7 @@ public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredie
     }
 
     public boolean isFree() {
-        return ingredients.isEmpty( ) && resources.isEmpty();
+        return ingredients.isEmpty() && resources.isEmpty();
     }
 
     public boolean isInstant() {
@@ -43,4 +46,7 @@ public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredie
         return itemStacks;
     }
 
+    public List<String> getMissingStages(Player player) {
+        return stages.stream().filter(s -> !StagePredicate.testAll(player, List.of(s))).toList();
+    }
 }

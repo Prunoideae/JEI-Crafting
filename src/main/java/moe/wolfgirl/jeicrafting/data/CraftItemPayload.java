@@ -49,7 +49,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
             int expected = recipe.output().getCount() * multiplier;
             var results = recipe.uncraftingItems();
 
-            if (recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(false)) {
+            if (!recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(true)) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
             }
@@ -70,7 +70,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
             }
         } else {
             var result = recipe.output();
-            if (recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(false)) {
+            if (!recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(true)) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
             }
