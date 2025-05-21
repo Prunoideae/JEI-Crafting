@@ -36,20 +36,17 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
 
     public void handle(IPayloadContext context) {
         var player = context.player();
-        var recipes = GameState.getMatchingRecipes(itemStack);
 
-        if (offset >= recipes.size()) {
-            return; // Prevent people from maliciously sending non-craftable items and crash the server
-        }
+        var recipe = GameState.getMatchingRecipe(itemStack, player, false);
+        if (recipe == null) return;
 
-        var recipe = recipes.get(offset);
         var data = player.getData(GameRegistries.Attachments.PLAYER_RESOURCES.get());
         if (uncrafting) {
             if (!recipe.isUncraftable()) return;
             int expected = recipe.output().getCount() * multiplier;
             var results = recipe.uncraftingItems();
 
-            if (!recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(true)) {
+            if (StagePredicate.stageNotMatch(player, recipe.tags())) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
             }
@@ -70,7 +67,7 @@ public record CraftItemPayload(ItemStack itemStack, int offset, int multiplier,
             }
         } else {
             var result = recipe.output();
-            if (!recipe.stages().map(s -> StagePredicate.testAll(player, s)).orElse(true)) {
+            if (StagePredicate.stageNotMatch(player, recipe.tags())) {
                 player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1f, 1f);
                 return;
             }

@@ -2,6 +2,7 @@ package moe.wolfgirl.jeicrafting.game;
 
 import com.mojang.datafixers.util.Pair;
 import moe.wolfgirl.jeicrafting.data.PlayerResourceType;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -23,4 +24,9 @@ public class ClientState {
 
     public static final Map<ResourceKey<PlayerResourceType>, Integer> RESOURCES = new HashMap<>();
     public static final List<Pair<ItemStack, Integer>> RESOURCE_STACKS = new ArrayList<>();
+
+    public static int getCurrentMultiplier() {
+        int[] multipliers = GameConfig.getMultipliers();
+        return multipliers[Screen.hasShiftDown() ? 1 : Screen.hasAltDown() ? 2 : 0];
+    }
 }

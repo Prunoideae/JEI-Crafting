@@ -1,6 +1,5 @@
 package moe.wolfgirl.jeicrafting.game;
 
-import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class GameConfig {
@@ -25,9 +24,7 @@ public class GameConfig {
         SPEC = builder.build();
     }
 
-    public static int getCurrentMultiplier() {
-        return Screen.hasShiftDown() ? SHIFT_MULTIPLIER.get() :
-                Screen.hasAltDown() ? ALT_MULTIPLIER.get() :
-                        DEFAULT_MULTIPLIER.get();
+    public static int[] getMultipliers() {
+        return new int[]{DEFAULT_MULTIPLIER.get(), SHIFT_MULTIPLIER.get(), ALT_MULTIPLIER.get()};
     }
 }

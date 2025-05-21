@@ -11,18 +11,14 @@ import moe.wolfgirl.jeicrafting.recipe.JEICraftingRecipe;
 import moe.wolfgirl.jeicrafting.render.CraftingComponent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
-import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
-import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.List;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class ClientEvents {
@@ -32,9 +28,9 @@ public class ClientEvents {
         if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_MIDDLE) return;
         var selected = JEICraftingPlugin.getSelectedItem();
         if (selected == null) return;
-        List<JEICraftingRecipe> recipes = GameState.getMatchingRecipes(selected);
-        if (recipes.isEmpty()) return;
-        JEICraftingRecipe recipe = recipes.getFirst();
+
+        JEICraftingRecipe recipe = GameState.getMatchingRecipe(selected, Minecraft.getInstance().player);
+        if (recipe == null) return;
 
         if (event.getAction() == InputConstants.PRESS) {
             if (recipe.isInstant() || (Screen.hasControlDown() && !recipe.isUncraftable())) {
@@ -47,7 +43,7 @@ public class ClientEvents {
         } else {
             ClientState.NEXT_CRAFT_TICK = -1;
             if (!recipe.isInstant()) return; // Handles all the crafting logic in mouse down
-            PacketDistributor.sendToServer(new CraftItemPayload(selected, 0, GameConfig.getCurrentMultiplier(), Screen.hasControlDown()));
+            PacketDistributor.sendToServer(new CraftItemPayload(selected, 0, ClientState.getCurrentMultiplier(), Screen.hasControlDown()));
         }
     }
 
@@ -64,11 +60,17 @@ public class ClientEvents {
         }
 
         if (mc.player.tickCount < ClientState.NEXT_CRAFT_TICK) return;
-        List<JEICraftingRecipe> recipes = GameState.getMatchingRecipes(selected);
-        if (recipes.isEmpty()) return;
-        JEICraftingRecipe recipe = recipes.getFirst();
+        JEICraftingRecipe recipe = GameState.getMatchingRecipe(selected, mc.player);
+        if (recipe == null) return;
         ClientState.NEXT_CRAFT_TICK = mc.player.tickCount + recipe.craftInTicks();
-        PacketDistributor.sendToServer(new CraftItemPayload(selected, 0, GameConfig.getCurrentMultiplier(), Screen.hasControlDown()));
+        PacketDistributor.sendToServer(new CraftItemPayload(selected, 0, ClientState.getCurrentMultiplier(), Screen.hasControlDown()));
+    }
+
+    @SubscribeEvent
+    public static void resetStatus(ScreenEvent.Closing event) {
+        if (event.getScreen() instanceof InventoryScreen) {
+            GameState.clearCache();
+        }
     }
 
     @SubscribeEvent
@@ -76,10 +78,8 @@ public class ClientEvents {
         var selected = JEICraftingPlugin.getSelectedItem();
         if (selected == null || !ItemStack.isSameItemSameComponents(selected, event.getItemStack())) return;
 
-        var matchingRecipes = GameState.getMatchingRecipes(selected);
-        if (matchingRecipes.isEmpty()) return;
-        var selectedRecipe = matchingRecipes.getFirst();
-
+        var selectedRecipe = GameState.getMatchingRecipe(selected, Minecraft.getInstance().player);
+        if (selectedRecipe == null) return;
         event.getTooltipElements().add(1, Either.right(new CraftingComponent(selectedRecipe)));
     }
 

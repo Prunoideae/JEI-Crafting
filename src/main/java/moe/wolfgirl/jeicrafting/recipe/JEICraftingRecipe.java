@@ -28,7 +28,7 @@ public record JEICraftingRecipe(ItemStack output,
                                 List<PlayerResources.PlayerResource> resources,
                                 List<ItemStack> uncraftingItems,
                                 int craftInTicks,
-                                Optional<List<String>> stages) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
+                                List<String> tags) implements Recipe<JEICraftingRecipe.JeiCraftingInput> {
 
     public boolean isFree() {
         return ingredients.isEmpty() && resources.isEmpty();
@@ -86,7 +86,7 @@ public record JEICraftingRecipe(ItemStack output,
                         PlayerResources.PlayerResource.CODEC.listOf().optionalFieldOf("resources", List.of()).forGetter(JEICraftingRecipe::resources),
                         ItemStack.CODEC.listOf().optionalFieldOf("uncraftsTo", List.of()).forGetter(JEICraftingRecipe::uncraftingItems),
                         Codec.INT.optionalFieldOf("craftInTicks", 10).forGetter(JEICraftingRecipe::craftInTicks),
-                        Codec.STRING.listOf().optionalFieldOf("stages").forGetter(JEICraftingRecipe::stages)
+                        Codec.STRING.listOf().optionalFieldOf("tags", List.of()).forGetter(JEICraftingRecipe::tags)
                 ).apply(data, JEICraftingRecipe::new)
         );
         public static final StreamCodec<RegistryFriendlyByteBuf, JEICraftingRecipe> STREAM_CODEC = StreamCodec.composite(
@@ -95,7 +95,7 @@ public record JEICraftingRecipe(ItemStack output,
                 ByteBufCodecs.collection(ArrayList::new, PlayerResources.PlayerResource.STREAM_CODEC), JEICraftingRecipe::resources,
                 ByteBufCodecs.collection(ArrayList::new, ItemStack.STREAM_CODEC), JEICraftingRecipe::uncraftingItems,
                 ByteBufCodecs.INT, JEICraftingRecipe::craftInTicks,
-                ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)), JEICraftingRecipe::stages,
+                ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8), JEICraftingRecipe::tags,
                 JEICraftingRecipe::new
         );
 

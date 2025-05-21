@@ -10,10 +10,15 @@ public interface StagePredicate {
 
     boolean test(Player player, List<String> stages);
 
-    static boolean testAll(Player player, List<String> stages) {
+    static boolean stageNotMatch(Player player, List<String> tags) {
+        var stages = tags.stream()
+                .filter(s -> s.startsWith("stage:"))
+                .map(s -> s.substring(6))
+                .toList();
+
         for (StagePredicate predicate : PREDICATES) {
-            if (!predicate.test(player, stages)) return false;
+            if (!predicate.test(player, stages)) return true;
         }
-        return true;
+        return false;
     }
 }

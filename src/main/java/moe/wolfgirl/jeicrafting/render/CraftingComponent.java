@@ -14,11 +14,11 @@ import java.util.List;
 public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredients,
                                 List<ItemStack> uncraftsTo,
                                 List<PlayerResources.PlayerResource> resources,
-                                List<String> stages,
+                                List<String> tags,
                                 int craftInTicks) implements TooltipComponent {
 
     public CraftingComponent(JEICraftingRecipe recipe) {
-        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.resources(), recipe.stages().orElse(List.of()), recipe.craftInTicks());
+        this(recipe.output(), recipe.ingredients(), recipe.uncraftingItems(), recipe.resources(), recipe.tags(), recipe.craftInTicks());
     }
 
     public boolean isUncraftable() {
@@ -47,6 +47,9 @@ public record CraftingComponent(ItemStack output, List<SizedIngredient> ingredie
     }
 
     public List<String> getMissingStages(Player player) {
-        return stages.stream().filter(s -> !StagePredicate.testAll(player, List.of(s))).toList();
+        return tags.stream()
+                .filter(s -> StagePredicate.stageNotMatch(player, List.of(s)))
+                .map(s -> s.substring(6))
+                .toList();
     }
 }

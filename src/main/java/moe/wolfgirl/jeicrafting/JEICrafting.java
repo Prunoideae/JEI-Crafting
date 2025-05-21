@@ -44,6 +44,6 @@ public class JEICrafting {
     public JEICrafting(IEventBus bus) {
         GameRegistries.register(bus);
 
-        ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.CLIENT, GameConfig.SPEC);
+        ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.SERVER, GameConfig.SPEC);
     }
 }

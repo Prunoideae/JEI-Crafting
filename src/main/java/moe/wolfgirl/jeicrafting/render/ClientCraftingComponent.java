@@ -1,6 +1,7 @@
 package moe.wolfgirl.jeicrafting.render;
 
 import moe.wolfgirl.jeicrafting.data.PlayerResourceType;
+import moe.wolfgirl.jeicrafting.data.PlayerResources;
 import moe.wolfgirl.jeicrafting.game.ClientState;
 import moe.wolfgirl.jeicrafting.game.GameConfig;
 import moe.wolfgirl.jeicrafting.game.GameUtil;
@@ -83,7 +84,7 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
         if (player == null) return;
 
         y += 1 + 10 * getMissingStages().size();
-        int multiplier = GameConfig.getCurrentMultiplier();
+        int multiplier = ClientState.getCurrentMultiplier();
         boolean uncrafting = Screen.hasControlDown();
         boolean canPerformUncrafting = uncrafting && craftingComponent.isUncraftable();
 
@@ -179,12 +180,16 @@ public class ClientCraftingComponent implements ClientTooltipComponent {
                 int expected = ingredient.count() * multiplier;
                 if (GameUtil.countItems(ingredient.ingredient(), player) < expected) return false;
             }
+
+            for (PlayerResources.PlayerResource resource : craftingComponent.resources()) {
+                if (ClientState.RESOURCES.getOrDefault(resource.id(), 0) < resource.amount()) return false;
+            }
             return true;
         }
     }
 
     private static void renderItemCount(GuiGraphics guiGraphics, Font font, int x, int y, int count, int color) {
-        String s = String.valueOf(count);
+        String s = NumberFormatter.formatInt(count);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0, 0, 200f);
         guiGraphics.drawString(font, s, x + 19 - 2 - font.width(s), y + 6 + 3, color);

@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,21 +37,25 @@ public record FakeItemPickupPayload(ItemStack itemStack,
     }
 
     public void handle(IPayloadContext context) {
-        var level = context.player().level();
-        ItemEntity itemEntity = new ItemEntity(level, x, y, z, itemStack);
-        itemEntity.setYRot(yRot);
+        ParticleSpawner.spawn(context.player().level(), itemStack, x, y, z, yRot);
+    }
 
-        var mc = Minecraft.getInstance();
-        level.playLocalSound(x, y, z, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2f,
-                (level.random.nextFloat() - level.random.nextFloat()) * 1.4F + 2.0F,
-                false);
+    public static class ParticleSpawner {
+        public static void spawn(Level level, ItemStack itemStack, double x, double y, double z, float yRot) {
+            if (level instanceof ClientLevel clientLevel) {
+                ItemEntity itemEntity = new ItemEntity(clientLevel, x, y, z, itemStack);
+                itemEntity.setYRot(yRot);
 
-        mc.particleEngine.add(new ItemPickupParticle(
-                mc.getEntityRenderDispatcher(),
-                mc.renderBuffers(),
-                (ClientLevel) level,
-                itemEntity,
-                context.player()
-        ));
+                var mc = Minecraft.getInstance();
+                clientLevel.playLocalSound(x, y, z, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2f,
+                        (clientLevel.random.nextFloat() - clientLevel.random.nextFloat()) * 1.4F + 2.0F,
+                        false);
+
+                mc.particleEngine.add(new ItemPickupParticle(
+                        mc.getEntityRenderDispatcher(), mc.renderBuffers(),
+                        clientLevel, itemEntity, mc.player
+                ));
+            }
+        }
     }
 }
